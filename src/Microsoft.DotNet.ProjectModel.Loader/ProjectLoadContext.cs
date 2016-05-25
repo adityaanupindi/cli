@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Microsoft.DotNet.ProjectModel.Compilation;
 
 namespace Microsoft.DotNet.ProjectModel.Loader
 {
