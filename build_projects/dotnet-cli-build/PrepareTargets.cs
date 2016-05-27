@@ -35,9 +35,10 @@ namespace Microsoft.DotNet.Cli.Build
 
         // All major targets will depend on this in order to ensure variables are set up right if they are run independently
         [Target(
-            nameof(GenerateVersions), 
-            nameof(CheckPrereqs), 
-            nameof(LocateStage0), 
+            nameof(GenerateVersions),
+            nameof(ZipTemplates),
+            nameof(CheckPrereqs),
+            nameof(LocateStage0),
             nameof(ExpectedBuildArtifacts),
             nameof(SetTelemetryProfile))]
         public static BuildTargetResult Init(BuildTargetContext c)
@@ -75,13 +76,33 @@ namespace Microsoft.DotNet.Cli.Build
                 ReleaseSuffix = branchInfo["RELEASE_SUFFIX"],
                 CommitCount = commitCount
             };
-            
+
 
             c.BuildContext["BuildVersion"] = buildVersion;
             c.BuildContext["CommitHash"] = commitHash;
 
             c.Info($"Building Version: {buildVersion.SimpleVersion} (NuGet Packages: {buildVersion.NuGetVersion})");
             c.Info($"From Commit: {commitHash}");
+
+            return c.Success();
+        }
+
+        [Target]
+        public static BuildTargetResult ZipTemplates(BuildTargetContext c)
+        {
+            var templateDirectories = Directory.GetDirectories(
+                Path.Combine(Dirs.RepoRoot, "src", "dotnet", "commands", "dotnet-new"));
+
+            foreach (var directory in templateDirectories)
+            {
+                var zipFile = Path.Combine(Path.GetDirectoryName(directory), Path.GetFileName(directory) + ".zip");
+                if (File.Exists(zipFile))
+                {
+                    File.Delete(zipFile);
+                }
+
+                ZipFile.CreateFromDirectory(directory, zipFile);
+            }
 
             return c.Success();
         }
@@ -137,8 +158,8 @@ namespace Microsoft.DotNet.Cli.Build
         }
 
         [Target(
-            nameof(ExpectedBuildArtifacts), 
-            nameof(DownloadHostAndSharedFxArchives), 
+            nameof(ExpectedBuildArtifacts),
+            nameof(DownloadHostAndSharedFxArchives),
             nameof(DownloadHostAndSharedFxInstallers))]
         public static BuildTargetResult DownloadHostAndSharedFxArtifacts(BuildTargetContext c) => c.Success();
 
@@ -154,15 +175,15 @@ namespace Microsoft.DotNet.Cli.Build
 
             AzurePublisher.DownloadFile(
                 AzurePublisher.CalculateArchiveBlob(
-                    combinedSharedHostAndFrameworkArchiveFile, 
-                    sharedFrameworkChannel, 
-                    sharedFrameworkVersion), 
+                    combinedSharedHostAndFrameworkArchiveFile,
+                    sharedFrameworkChannel,
+                    sharedFrameworkVersion),
                 combinedSharedHostAndFrameworkArchiveFile).Wait();
 
             // Unpack the combined archive to shared framework publish directory
             Rmdir(Dirs.SharedFrameworkPublish);
             Mkdirp(Dirs.SharedFrameworkPublish);
-            if(CurrentPlatform.IsWindows)
+            if (CurrentPlatform.IsWindows)
             {
                 ZipFile.ExtractToDirectory(combinedSharedHostAndFrameworkArchiveFile, Dirs.SharedFrameworkPublish);
             }
@@ -457,8 +478,8 @@ cmake is required to build the native host 'corehost'";
         }
 
         private static void AddInstallerArtifactToContext(
-            BuildTargetContext c, 
-            string artifactPrefix, 
+            BuildTargetContext c,
+            string artifactPrefix,
             string contextPrefix,
             string version)
         {
