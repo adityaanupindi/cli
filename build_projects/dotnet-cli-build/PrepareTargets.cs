@@ -18,7 +18,7 @@ namespace Microsoft.DotNet.Cli.Build
 {
     public class PrepareTargets
     {
-        [Target(nameof(Init), nameof(DownloadHostAndSharedFxArtifacts), nameof(RestorePackages))]
+        [Target(nameof(Init), nameof(DownloadHostAndSharedFxArtifacts), nameof(RestorePackages), nameof(ZipTemplates))]
         public static BuildTargetResult Prepare(BuildTargetContext c) => c.Success();
 
         [Target(nameof(CheckPrereqCmakePresent), nameof(CheckPlatformDependencies))]
@@ -36,7 +36,6 @@ namespace Microsoft.DotNet.Cli.Build
         // All major targets will depend on this in order to ensure variables are set up right if they are run independently
         [Target(
             nameof(GenerateVersions),
-            nameof(ZipTemplates),
             nameof(CheckPrereqs),
             nameof(LocateStage0),
             nameof(ExpectedBuildArtifacts),

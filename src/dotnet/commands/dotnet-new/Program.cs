@@ -37,32 +37,30 @@ namespace Microsoft.DotNet.Tools.New
             {
                 string fileName = GetFileNameFromResourceName(resourceName);
 
-                using (var fileStream = File.Create(fileName))
+                using (var resource = thisAssembly.GetManifestResourceStream(resourceName))
                 {
-                    using (var resource = thisAssembly.GetManifestResourceStream(resourceName))
+                    var archive = new ZipArchive(resource);
+
+                    try
                     {
-                        resource.CopyTo(fileStream);
+                        archive.ExtractToDirectory(Directory.GetCurrentDirectory());
+
+                        File.Move(
+                            Path.Combine(Directory.GetCurrentDirectory(), "project.json.template"),
+                            Path.Combine(Directory.GetCurrentDirectory(), "project.json"));
                     }
-                }
-
-                try
-                {
-                    ZipFile.ExtractToDirectory(fileName, Directory.GetCurrentDirectory());
-
-                    File.Move(
-                        Path.Combine(Directory.GetCurrentDirectory(), "project.json.template"),
-                        Path.Combine(Directory.GetCurrentDirectory(), "project.json"));
-                }
-                catch (IOException ex)
-                {
-                    Reporter.Error.WriteLine(ex.Message);
-                    hasFilesToOverride = true;
-                }
-                finally
-                {
-                    if (File.Exists(fileName))
+                    catch (IOException ex)
                     {
-                        File.Delete(fileName);
+                        Reporter.Error.WriteLine(ex.Message);
+                        hasFilesToOverride = true;
+                    }
+                    finally
+                    {
+                        var noautoupdate = Path.Combine(Directory.GetCurrentDirectory(), ".noautoupdate");
+                        if (File.Exists(noautoupdate))
+                        {
+                            File.Delete(noautoupdate);
+                        }
                     }
                 }
             }
