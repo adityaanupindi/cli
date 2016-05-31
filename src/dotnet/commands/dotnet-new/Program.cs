@@ -54,14 +54,6 @@ namespace Microsoft.DotNet.Tools.New
                         Reporter.Error.WriteLine(ex.Message);
                         hasFilesToOverride = true;
                     }
-                    finally
-                    {
-                        var noautoupdate = Path.Combine(Directory.GetCurrentDirectory(), ".noautoupdate");
-                        if (File.Exists(noautoupdate))
-                        {
-                            File.Delete(noautoupdate);
-                        }
-                    }
                 }
             }
 
